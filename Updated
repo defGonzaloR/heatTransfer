@@ -1,0 +1,126 @@
+%import image, turn to grayscale (to be safe)
+acrylic = rgb2gray(imread('Acrylicfinal.JPG'));
+nylon = rgb2gray(imread('Nylonfinal.JPG'));
+PVC = rgb2gray(imread('PVCfinal.JPG'));
+Oak = rgb2gray(imread('Oakfinal.JPG'));
+Pine = rgb2gray(imread('Pinefinal.JPG'));
+
+%Arcylic 
+scaledAcrylic = tempMap(acrylic);
+%values
+kAcrylic = 0.2; %conductivity
+dTAc = 78; %change in temperature t2-t1 in degree C
+
+%Nylon
+scaledNylon = tempMap(nylon);
+%values
+kNylon = 0.25; %conductivity
+dTNy = 88; %change in temperature t2-t1
+
+%PVC
+scaledPVC = tempMap(PVC);
+%values
+kPVC = 0.19; %conductivity
+dTPV = 87; %change in temperature t2-t1
+
+%Oak
+scaledOak = tempMap(Oak);
+%values
+kOak = 0.17; %conductivity
+dTOa = 85; %change in temperature t2-t1
+
+%Pine
+scaledPine = tempMap(Pine);
+%values
+kPine = 0.12; %conductivity
+dTPi = 73; %change in temperature t2-t1
+
+function scaled = tempMap(imageOfBlocks)
+%now find average value over row in image
+    rowAvg = mean(imageOfBlocks, 2);
+%Set min and max temp (in celsius)
+    minTemp = 27;
+    maxTemp = 117;
+%This equation will scale the pixel values to actual temperature values
+%betwen 27.6 degrees C and 109.8 degrees C
+    scaled = minTemp +(maxTemp - minTemp) * (rowAvg - min(rowAvg)) / (max(rowAvg) - min(rowAvg));
+end
+function rValue = rCond(kCons)
+    L = 0.0625; %m
+    A = L^2; %m^2
+    rValue = L / (kCons * A);
+end
+function rTotal = totalCond(r1)
+    r2 = 64; %rosewoods thermal resistance (constant)
+    rTotal = r1 + r2; %rTotal is equal to the r conduction of rosewood plus the coduction of the "changed" block
+end
+function qValue = heatLoss(dT, Cond) %Cond is the total conduction for the two stacked blocks (get from totalCond function)
+    qValue = dT / Cond;
+end
+%Acrylic
+aCond = rCond(kAcrylic);
+aCondTotal = totalCond(aCond);
+aHeatLoss = heatLoss(dTAc, aCondTotal);
+%Nylon
+nCond = rCond(kNylon);
+nCondTotal = totalCond(nCond);
+nHeatLoss = heatLoss(dTNy , nCondTotal);
+%PVC
+pvcCond = rCond(kPVC);
+pvcCondTotal = totalCond(pvcCond);
+pvcHeatLoss = heatLoss(dTPV , pvcCondTotal);
+%Oak
+oakCond = rCond(kOak);
+oakCondTotal = totalCond(oakCond);
+oakHeatLoss = heatLoss(dTOa , oakCondTotal);
+%Pine 
+pineCond = rCond(kPine);
+pineCondTotal = totalCond(pineCond);
+pineHeatLoss = heatLoss(dTPi , pineCondTotal);
+
+%x axis values
+aLength = 1:length(scaledAcrylic);
+nLength = 1:length(scaledNylon);
+pvcLength = 1:length(scaledPVC);
+oLength = 1:length(scaledOak);
+pineLength = 1:length(scaledPine);
+
+%plot different graphs
+figure;
+plot(aLength,scaledAcrylic,'linewidth',1.5); hold on;
+plot(nLength, scaledNylon,'linewidth',1.5);
+plot(pvcLength,scaledPVC,'linewidth',1.5);
+plot(oLength,scaledOak,'linewidth',1.5);
+plot(pineLength, scaledPine,'linewidth',1.5);
+hold off;
+
+title('Temperature Profiles Across Different Materials');
+xlabel('Length of array');
+ylabel('Temperature (°C)');
+legend('Acrylic', 'Nylon', 'PVC', 'Oak', 'Pine');
+grid on;
+
+% For Acrylic
+disp(['Acrylic Conductivity: ', num2str(aCond)]);
+disp(['Acrylic + Rosewood Total Conductivity: ', num2str(aCondTotal)]);
+disp(['Heat loss for Acrylic: ', num2str(aHeatLoss)]);
+
+% For Nylon
+disp(['Nylon Conductivity: ', num2str(nCond)]);
+disp(['Nylon + Rosewood Total Conductivity: ', num2str(nCondTotal)]);
+disp(['Heat loss for Nylon: ', num2str(nHeatLoss)]);
+
+% For PVC
+disp(['PVC Conductivity: ', num2str(pvcCond)]);
+disp(['PVC + Rosewood Total Conductivity: ', num2str(pvcCondTotal)]);
+disp(['Heat loss for PVC: ', num2str(pvcHeatLoss)]);
+
+% For Oak
+disp(['Oak Conductivity: ', num2str(oakCond)]);
+disp(['Oak + Rosewood Total Conductivity: ', num2str(oakCondTotal)]);
+disp(['Heat loss for Oak: ', num2str(oakHeatLoss)]);
+
+% For Pine
+disp(['Pine Conductivity: ', num2str(pineCond)]);
+disp(['Pine + Rosewood Total Conductivity: ', num2str(pineCondTotal)]);
+disp(['Heat loss for Pine: ', num2str(pineHeatLoss)]);
